@@ -21,7 +21,7 @@ const LoadingScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <Image source={require('../assets/wave1.png')} style={styles.logo} />
+      <Image source={require('../assets/images/wave1.png')} style={styles.logo} />
       <Text style={styles.text}>ecowave</Text>
     </View>
   );

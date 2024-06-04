@@ -1,12 +1,25 @@
 import React from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity, Dimensions } from 'react-native';
+import { useNavigation, NavigationProp } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+
+type RootStackParamList = {
+  InitialScreen: undefined;
+  LoginScreen: undefined;
+};
 
 const { width, height } = Dimensions.get('window');
 
 const InitialScreen: React.FC = () => {
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+
+  const navigateToLogin = () => {
+    navigation.navigate('LoginScreen');
+  };
+
   return (
     <View style={styles.container}>
-      <Image source={require('../assets/ocg_saving.png')} style={styles.backgroundImage} />
+      <Image source={require('../assets/images/ocg_saving.png')} style={styles.backgroundImage} />
       <View style={styles.overlay} />
       <View style={styles.textContainer}>
         <Text style={styles.title}>bem-vindo.</Text>
@@ -14,7 +27,7 @@ const InitialScreen: React.FC = () => {
           preservando a vida marinha por meio do descarte responsável de lixo.
         </Text>
       </View>
-      <TouchableOpacity style={styles.button} onPress={() => { /* Ação ao clicar no botão */ }}>
+      <TouchableOpacity style={styles.button} onPress={navigateToLogin}>
         <Text style={styles.buttonText}>Começar</Text>
       </TouchableOpacity>
     </View>
@@ -69,8 +82,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   buttonText: {
-    color: '2B2B2B',
-    fontSize: 14,
+    color: '#007bff',
+    fontSize: 18,
     fontWeight: 'bold',
     fontFamily: 'Raleway-Bold',
   },
