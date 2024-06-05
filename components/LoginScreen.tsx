@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, Dimensions } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import axios from 'axios';
 
@@ -8,6 +8,7 @@ type RootStackParamList = {
   InitialScreen: undefined;
   LoginScreen: undefined;
   RegisterScreen: undefined;
+  ColetasScreen: undefined;
 };
 
 type LoginScreenNavigationProp = StackNavigationProp<RootStackParamList, 'LoginScreen'>;
@@ -21,6 +22,12 @@ const LoginScreen: React.FC = () => {
 
   const navigation = useNavigation<LoginScreenNavigationProp>();
 
+  useFocusEffect(
+    useCallback(() => {
+      setError('');
+    }, [])
+  );
+
   const handleLogin = async () => {
     try {
       const response = await axios.post('http://localhost:3000/api/login', {
@@ -31,6 +38,7 @@ const LoginScreen: React.FC = () => {
       if (response.status === 200) {
         Alert.alert('Sucesso', 'Login realizado com sucesso');
         setError('');
+        navigation.navigate('ColetasScreen'); // Navegar para ColetasScreen após login
       } else {
         setError('Dados inválidos.');
       }
