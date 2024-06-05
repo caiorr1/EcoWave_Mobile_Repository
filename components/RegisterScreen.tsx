@@ -17,36 +17,39 @@ const RegisterScreen: React.FC = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
 
   const navigation = useNavigation<RegisterScreenNavigationProp>();
 
   const handleRegister = async () => {
     if (!name || !email || !password) {
-      Alert.alert('Erro', 'Preencha todos os campos.');
+      setError('Preencha todos os campos.');
       return;
     }
 
     try {
       const response = await axios.post('http://localhost:3000/api/register', {
-        name: name,
+        nome_usuario: name,
+        senha_hash: password,
         email: email,
-        password: password
+        localizacao: "localizacao", // Ajuste conforme necessário
+        foto_perfil: "foto_perfil" // Ajuste conforme necessário
       });
 
       if (response.status === 201) {
         Alert.alert('Sucesso', 'Registro realizado com sucesso');
         navigation.navigate('LoginScreen');
       } else {
-        Alert.alert('Erro', 'Usuário já registrado');
+        setError('Usuário já registrado');
       }
     } catch (error) {
-      Alert.alert('Erro', 'Falha no registro. Tente novamente.');
+      setError('Dados inválidos.');
     }
   };
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity style={styles.backButton} onPress={() => navigation.navigate('LoginScreen')}>
+      <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
         <View style={styles.backButtonCircle}>
           <Text style={styles.backButtonText}>{"<"}</Text>
         </View>
@@ -54,34 +57,38 @@ const RegisterScreen: React.FC = () => {
       <Text style={styles.title}>Criar Conta</Text>
       <Text style={styles.subtitle}>Preencha Seus Dados.</Text>
 
-      <Text style={styles.label}>Nome</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="xxxxxxx"
-        placeholderTextColor="rgba(0, 0, 0, 0.5)"
-        value={name}
-        onChangeText={setName}
-      />
+      {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
-      <Text style={styles.label}>Endereço de E-mail</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="xyz@gmail.com"
-        placeholderTextColor="rgba(0, 0, 0, 0.5)"
-        keyboardType="email-address"
-        value={email}
-        onChangeText={setEmail}
-      />
+      <View style={styles.formContainer}>
+        <Text style={styles.label}>Nome</Text>
+        <TextInput
+          style={[styles.input, error ? styles.inputError : null]}
+          placeholder="xxxxxxx"
+          placeholderTextColor="rgba(0, 0, 0, 0.5)"
+          value={name}
+          onChangeText={setName}
+        />
 
-      <Text style={styles.label}>Senha</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Senha"
-        placeholderTextColor="rgba(0, 0, 0, 0.5)"
-        secureTextEntry={true}
-        value={password}
-        onChangeText={setPassword}
-      />
+        <Text style={styles.label}>Endereço de E-mail</Text>
+        <TextInput
+          style={[styles.input, error ? styles.inputError : null]}
+          placeholder="xyz@gmail.com"
+          placeholderTextColor="rgba(0, 0, 0, 0.5)"
+          keyboardType="email-address"
+          value={email}
+          onChangeText={setEmail}
+        />
+
+        <Text style={styles.label}>Senha</Text>
+        <TextInput
+          style={[styles.input, error ? styles.inputError : null]}
+          placeholder="Senha"
+          placeholderTextColor="rgba(0, 0, 0, 0.5)"
+          secureTextEntry={true}
+          value={password}
+          onChangeText={setPassword}
+        />
+      </View>
 
       <TouchableOpacity style={styles.registerButton} onPress={handleRegister}>
         <Text style={styles.registerButtonText}>Criar Conta</Text>
@@ -150,6 +157,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     marginBottom: 15,
     fontFamily: 'Raleway-Regular',
+  },
+  formContainer: {
+    marginBottom: 20,
+  },
+  errorText: {
+    color: 'red',
+    marginBottom: 10,
+    fontFamily: 'Raleway-Regular',
+  },
+  inputError: {
+    borderColor: 'red',
   },
   registerButton: {
     backgroundColor: '#007bff',

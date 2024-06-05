@@ -1,0 +1,9 @@
+{
+  "development": {
+    "username": "your_oracle_username",
+    "password": "your_oracle_password",
+    "database": "your_oracle_database",
+    "host": "oracle.fiap.com.br",
+    "dialect": "oracle"
+  }
+}

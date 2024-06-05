@@ -25,12 +25,12 @@ const LoginScreen: React.FC = () => {
     try {
       const response = await axios.post('http://localhost:3000/api/login', {
         email: email,
-        password: password
+        senha_hash: password
       });
-
+  
       if (response.status === 200) {
         Alert.alert('Sucesso', 'Login realizado com sucesso');
-        setError('');
+        // Navegar para a próxima tela ou fazer algo com a resposta
       } else {
         setError('Dados inválidos.');
       }
