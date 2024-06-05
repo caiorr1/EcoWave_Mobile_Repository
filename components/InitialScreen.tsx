@@ -82,10 +82,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   buttonText: {
-    color: '#007bff',
-    fontSize: 18,
+    color: '#2B2B2B',
+    fontSize: 14,
     fontWeight: 'bold',
-    fontFamily: 'Raleway-Bold',
+    fontFamily: 'Raleway-Regular',
   },
 });
 

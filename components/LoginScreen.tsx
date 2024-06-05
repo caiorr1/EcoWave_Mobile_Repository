@@ -1,15 +1,18 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, Dimensions } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import axios from 'axios';
 
 type RootStackParamList = {
+  InitialScreen: undefined;
   LoginScreen: undefined;
   RegisterScreen: undefined;
 };
 
 type LoginScreenNavigationProp = StackNavigationProp<RootStackParamList, 'LoginScreen'>;
+
+const { width, height } = Dimensions.get('window');
 
 const LoginScreen: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -18,23 +21,22 @@ const LoginScreen: React.FC = () => {
 
   const navigation = useNavigation<LoginScreenNavigationProp>();
 
-  const handleLogin = () => {
-    if (!email || !password) {
-      setError('Dados inválidos.');
-      return;
-    }
+  const handleLogin = async () => {
+    try {
+      const response = await axios.post('http://localhost:3000/api/login', {
+        email: email,
+        password: password
+      });
 
-    axios.post('http://seu-endereco-api/api/login', {
-      email: email,
-      password: password
-    })
-    .then(response => {
-      Alert.alert('Sucesso', 'Login realizado com sucesso');
-      setError('');
-    })
-    .catch(error => {
+      if (response.status === 200) {
+        Alert.alert('Sucesso', 'Login realizado com sucesso');
+        setError('');
+      } else {
+        setError('Dados inválidos.');
+      }
+    } catch (error) {
       setError('Dados inválidos.');
-    });
+    }
   };
 
   return (
@@ -75,12 +77,14 @@ const LoginScreen: React.FC = () => {
         <Text style={styles.loginButtonText}>Entrar</Text>
       </TouchableOpacity>
 
-      <Text style={styles.signupText}>
-        Novo por aqui?{' '}
-        <Text style={styles.signupLink} onPress={() => navigation.navigate('RegisterScreen')}>
-          Crie uma conta!
+      <View style={styles.bottomTextContainer}>
+        <Text style={styles.signupText}>
+          Novo por aqui?{' '}
+          <Text style={styles.signupLink} onPress={() => navigation.navigate('RegisterScreen')}>
+            Crie uma conta!
+          </Text>
         </Text>
-      </Text>
+      </View>
     </View>
   );
 }
@@ -110,9 +114,9 @@ const styles = StyleSheet.create({
     fontFamily: 'Raleway-Bold',
   },
   title: {
-    fontSize: 30,
+    fontSize: 32,
     fontWeight: 'bold',
-    fontFamily: 'Raleway-Bold',
+    fontFamily: 'Raleway-Regular',
     marginBottom: 10,
     textAlign: 'center',
   },
@@ -139,7 +143,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 10,
     paddingHorizontal: 10,
-    marginBottom: 5,
+    marginBottom: 15,
     fontFamily: 'Raleway-Regular',
   },
   inputError: {
@@ -158,9 +162,16 @@ const styles = StyleSheet.create({
   },
   loginButtonText: {
     color: '#fff',
-    fontSize: 18,
+    fontSize: 14,
     fontWeight: 'bold',
-    fontFamily: 'Raleway-Bold',
+    fontFamily: 'Raleway-Regular',
+  },
+  bottomTextContainer: {
+    position: 'absolute',
+    bottom: 30,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
   },
   signupText: {
     textAlign: 'center',
@@ -168,7 +179,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Raleway-Regular',
   },
   signupLink: {
-    color: '#007bff',
+    color: '#1A1D1E',
     fontWeight: 'bold',
     fontFamily: 'Raleway-Bold',
   },

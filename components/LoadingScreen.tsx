@@ -42,7 +42,7 @@ const styles = StyleSheet.create({
   text: {
     color: 'white',
     fontSize: 24,
-    fontFamily: 'Raleway-Bold',
+    fontFamily: 'Raleway-Regular',
   },
 });
 
