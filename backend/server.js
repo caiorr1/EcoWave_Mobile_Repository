@@ -1,60 +1,59 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const { Sequelize } = require('sequelize');
+const { Usuario, ItemReciclado } = require('./models/db');
 
 const app = express();
 const port = 3000;
 
 app.use(bodyParser.json());
 
-// Importar modelos
-const db = require('./models');
-
-// Rota de teste
-app.get('/', (req, res) => {
-  res.send('Servidor EcoWave está rodando!');
-});
-
-// Endpoint para registrar um novo usuário
+// Rota para registro
 app.post('/api/register', async (req, res) => {
   try {
-    const { nome_usuario, senha_hash, email, localizacao, foto_perfil } = req.body;
-    const user = await db.User.create({
+    const { nome_usuario, email, senha_hash } = req.body;
+    const novoUsuario = await Usuario.create({
       nome_usuario,
-      senha_hash,
       email,
-      data_registro: new Date(),
-      localizacao,
-      foto_perfil
+      senha_hash,
+      data_registro: new Date()
     });
-    res.status(201).json(user);
+    res.status(201).json(novoUsuario);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Falha no registro do usuário' });
+    res.status(500).json({ message: 'Erro no servidor', error });
   }
 });
 
-// Endpoint para login de usuário
+// Rota para login
 app.post('/api/login', async (req, res) => {
   try {
     const { email, senha_hash } = req.body;
-    const user = await db.User.findOne({ where: { email, senha_hash } });
-    if (user) {
-      res.status(200).json(user);
+    const usuario = await Usuario.findOne({ where: { email, senha_hash } });
+    if (usuario) {
+      res.status(200).json(usuario);
     } else {
-      res.status(401).json({ error: 'Credenciais inválidas' });
+      res.status(401).json({ message: 'Dados inválidos' });
     }
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Falha no login' });
+    res.status(500).json({ message: 'Erro no servidor', error });
   }
 });
 
-// Conectar ao banco e iniciar o servidor
-db.sequelize.sync().then(() => {
-  app.listen(port, () => {
-    console.log(`Servidor rodando na porta ${port}`);
-  });
-}).catch(error => {
-  console.error('Erro ao conectar ao banco de dados:', error);
+// Rota para adicionar item reciclado
+app.post('/api/recycled-items', async (req, res) => {
+  try {
+    const { tipo_item, data_coleta, localizacao, quantidade } = req.body;
+    const novoItem = await ItemReciclado.create({
+      tipo_item,
+      data_coleta,
+      localizacao,
+      quantidade
+    });
+    res.status(201).json(novoItem);
+  } catch (error) {
+    res.status(500).json({ message: 'Erro no servidor', error });
+  }
+});
+
+app.listen(port, () => {
+  console.log(`Servidor rodando em http://localhost:${port}`);
 });
