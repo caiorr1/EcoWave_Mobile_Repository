@@ -49,14 +49,14 @@ app.post('/api/register', async (req, res) => {
 app.delete('/api/users/:id', async (req, res) => {
   const id = req.params.id;
   try {
-      const user = await Usuario.findByPk(id);
-      if (!user) {
-          return res.status(404).json({ message: 'Usuário não encontrado' });
-      }
-      await user.destroy();
-      res.status(200).json({ message: 'Usuário excluído com sucesso' });
+    const user = await Usuario.findByPk(id);
+    if (!user) {
+      return res.status(404).json({ message: 'Usuário não encontrado' });
+    }
+    await user.destroy();
+    res.status(200).json({ message: 'Usuário excluído com sucesso' });
   } catch (error) {
-      res.status(500).json({ message: 'Erro ao excluir o usuário', error });
+    res.status(500).json({ message: 'Erro ao excluir o usuário', error });
   }
 });
 
@@ -91,6 +91,37 @@ app.get('/api/user', verificarToken, async (req, res) => {
     res.status(200).json({ usuario_id, nome_usuario, email });
   } catch (error) {
     res.status(500).json({ message: 'Erro no servidor', error });
+  }
+});
+
+// Rota para listar todos os usuários
+app.get('/api/users', async (req, res) => {
+  try {
+    const users = await Usuario.findAll({
+      attributes: ['usuario_id', 'nome_usuario', 'email'] // Exclui o campo senha_hash
+    });
+    res.status(200).json(users);
+  } catch (error) {
+    res.status(500).json({ message: 'Erro no servidor', error });
+  }
+});
+
+// Rota para atualizar um usuário
+app.put('/api/users/:id', async (req, res) => {
+  const { id } = req.params;
+  const { nome_usuario, email, senha_hash } = req.body;
+  try {
+    const user = await Usuario.findByPk(id);
+    if (!user) {
+      return res.status(404).json({ message: 'Usuário não encontrado' });
+    }
+
+    const hashedPassword = senha_hash ? bcrypt.hashSync(senha_hash, 8) : user.senha_hash;
+
+    await user.update({ nome_usuario, email, senha_hash: hashedPassword });
+    res.status(200).json({ message: 'Usuário atualizado com sucesso', user });
+  } catch (error) {
+    res.status(500).json({ message: 'Erro ao atualizar o usuário', error });
   }
 });
 

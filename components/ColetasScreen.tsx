@@ -8,20 +8,20 @@ interface ItemType {
 
 // Tipos de itens e suas respectivas imagens
 const itemTypes: ItemType = {
-  Plastico: require('../assets/plastic-icon.png'), 
-  Papel: require('../assets/paper-icon.png'), 
-  Metal: require('../assets/metal-icon.png'), 
-  Vidro: require('../assets/glass-icon.png'), 
-  NaoReciclavel: require('../assets/non-recyclable-icon.png')
+  Plástico: require('../assets/images/plastic-icon.png'), 
+  Papel: require('../assets/images/paper-icon.png'), 
+  Metal: require('../assets/images/metal-icon.png'), 
+  Vidro: require('../assets/images/glass-icon.png'), 
+  NãoReciclável: require('../assets/images/non-recyclable-icon.png')
 };
 
 const ColetasScreen = () => {
   const [items, setItems] = useState([
-    { id: 1, type: 'Plastico', quantity: 1 },
+    { id: 1, type: 'Plástico', quantity: 1 },
     { id: 2, type: 'Papel', quantity: 2 },
     { id: 3, type: 'Metal', quantity: 1 },
     { id: 4, type: 'Vidro', quantity: 3 },
-    { id: 5, type: 'NaoReciclavel', quantity: 0 },
+    { id: 5, type: 'NãoReciclável', quantity: 0 },
   ]);
 
   const { adicionarColeta } = useGlobalState(); // Usa a função do contexto global
@@ -62,7 +62,7 @@ const ColetasScreen = () => {
           <TouchableOpacity onPress={() => handleAddItem(item.id)} style={styles.changeQuantityButton}>
             <Text style={styles.buttonText}>+</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.button} onPress={() => handleSaveItem(item.type, item.quantity)}>
+          <TouchableOpacity style={styles.addButton} onPress={() => handleSaveItem(item.type, item.quantity)}>
             <Text style={styles.buttonText}>Adicionar</Text>
           </TouchableOpacity>
         </View>
@@ -81,41 +81,44 @@ const styles = StyleSheet.create({
   itemContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F7F7F9', // Cor de fundo do retângulo
-    width: 327, // Largura do retângulo
+    backgroundColor: '#3F3F3F', // Cor de fundo do retângulo
+    width: 250, // Largura do retângulo
     height: 72, // Altura do retângulo
     borderRadius: 4, // Borda arredondada
     marginVertical: 10, // Espaçamento vertical entre os itens
     paddingHorizontal: 10, // Padding horizontal interno
   },
   itemImage: {
-    width: 50,
-    height: 50,
+    width: 30, // Diminuir tamanho da imagem
+    height: 30, // Diminuir tamanho da imagem
     marginRight: 10,
   },
   itemText: {
     flex: 1,
-    fontSize: 16, // Tamanho do texto
-    color: '#000000', // Cor do texto
+    fontSize: 14, // Diminuir tamanho do texto
+    color: 'white', // Cor do texto
   },
   quantityText: {
-    fontSize: 16, // Tamanho do texto da quantidade
-    color: '#000000', // Cor do texto
+    fontSize: 14, // Diminuir tamanho do texto da quantidade
+    color: 'white', // Cor do texto
     marginRight: 10,
   },
   changeQuantityButton: {
-    padding: 10,
-    backgroundColor: '#e0e0e0', // Cor do botão para alterar quantidade
+    padding: 4, // Diminuir tamanho do botão de adicionar/remover
+    backgroundColor: '#3F3F3F', // Mesma cor do fundo do retângulo
     borderRadius: 5,
   },
-  button: {
-    padding: 10,
-    backgroundColor: '#007bff', // Cor do botão
+  addButton: {
+    paddingVertical: 3, // Diminuir tamanho do botão adicionar
+    paddingHorizontal: 6,
+    backgroundColor: '#3F3F3F', // Cor de fundo cinza
     borderRadius: 5,
+    borderWidth: 1, // Borda branca
+    borderColor: 'white',
   },
   buttonText: {
     color: 'white', // Cor do texto do botão
-    fontSize: 14, // Tamanho do texto do botão
+    fontSize: 12, // Diminuir tamanho do texto do botão
   }
 });
 

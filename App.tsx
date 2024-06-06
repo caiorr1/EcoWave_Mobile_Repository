@@ -47,10 +47,7 @@ const App: React.FC = () => {
     <GlobalStateProvider>
       <NavigationContainer>
         <Stack.Navigator initialRouteName="LoadingScreen">
-          <Stack.Screen name="LoadingScreen" component={LoadingScreen} options={{ headerShown: false }} />
-          <Stack.Screen name="InitialScreen" component={InitialScreen} options={{ headerShown: false }} />
-          <Stack.Screen name="LoginScreen" component={LoginScreen} options={{ headerShown: false }} />
-          <Stack.Screen name="RegisterScreen" component={RegisterScreen} options={{ headerShown: false }} />
+          
           <Stack.Screen name="ColetasScreen" component={ColetasScreen} options={{ headerShown: false }} />
         </Stack.Navigator>
       </NavigationContainer>
