@@ -2,7 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, Dimensions } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import axios from 'axios';
+import { useGlobalState } from '../hooks/useGlobalState';
 
 type RootStackParamList = {
   InitialScreen: undefined;
@@ -19,7 +19,7 @@ const LoginScreen: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-
+  const { login } = useGlobalState();
   const navigation = useNavigation<LoginScreenNavigationProp>();
 
   useFocusEffect(
@@ -30,19 +30,11 @@ const LoginScreen: React.FC = () => {
 
   const handleLogin = async () => {
     try {
-      const response = await axios.post('http://localhost:3000/api/login', {
-        email: email,
-        password: password
-      });
-
-      if (response.status === 200) {
-        Alert.alert('Sucesso', 'Login realizado com sucesso');
-        setError('');
-        navigation.navigate('ColetasScreen'); // Navegar para ColetasScreen após login
-      } else {
-        setError('Dados inválidos.');
-      }
-    } catch (error) {
+      await login(email, password);
+      Alert.alert('Sucesso', 'Login realizado com sucesso');
+      setError('');
+      navigation.navigate('ColetasScreen');
+    } catch (err) {
       setError('Dados inválidos.');
     }
   };

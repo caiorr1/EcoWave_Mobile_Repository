@@ -1,196 +1,122 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, FlatList, TouchableOpacity, Dimensions } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
+import { View, Text, StyleSheet, Image, TouchableOpacity, ImageSourcePropType } from 'react-native';
+import { useGlobalState } from '../hooks/useGlobalState'; // Importa o hook de estado global
 
-type RootStackParamList = {
-  ColetasScreen: undefined;
+interface ItemType {
+  [key: string]: ImageSourcePropType;
+}
+
+// Tipos de itens e suas respectivas imagens
+const itemTypes: ItemType = {
+  Plastico: require('../assets/plastic-icon.png'), 
+  Papel: require('../assets/paper-icon.png'), 
+  Metal: require('../assets/metal-icon.png'), 
+  Vidro: require('../assets/glass-icon.png'), 
+  NaoReciclavel: require('../assets/non-recyclable-icon.png')
 };
 
-type ColetasScreenNavigationProp = StackNavigationProp<RootStackParamList, 'ColetasScreen'>;
+const ColetasScreen = () => {
+  const [items, setItems] = useState([
+    { id: 1, type: 'Plastico', quantity: 1 },
+    { id: 2, type: 'Papel', quantity: 2 },
+    { id: 3, type: 'Metal', quantity: 1 },
+    { id: 4, type: 'Vidro', quantity: 3 },
+    { id: 5, type: 'NaoReciclavel', quantity: 0 },
+  ]);
 
-const { width, height } = Dimensions.get('window');
+  const { adicionarColeta } = useGlobalState(); // Usa a função do contexto global
 
-const items = [
-  { id: '1', name: 'Plástico', icon: '♻️' },
-  { id: '2', name: 'Papel', icon: '📄' },
-  { id: '3', name: 'Metal', icon: '🛠️' },
-  { id: '4', name: 'Vidro', icon: '🍾' },
-  { id: '5', name: 'Não-Reciclável', icon: '🚮' },
-];
+  // Função para incrementar a quantidade de um item
+  const handleAddItem = (id: number) => {
+    const newItems = items.map(item =>
+      item.id === id ? { ...item, quantity: Math.min(item.quantity + 1, 50) } : item // Limita a quantidade máxima a 50
+    );
+    setItems(newItems);
+  };
 
-const ColetasScreen: React.FC = () => {
-  const navigation = useNavigation<ColetasScreenNavigationProp>();
-  const [search, setSearch] = useState('');
+  // Função para decrementar a quantidade de um item
+  const handleRemoveItem = (id: number) => {
+    const newItems = items.map(item =>
+      item.id === id ? { ...item, quantity: Math.max(item.quantity - 1, 0) } : item // Limita a quantidade mínima a 0
+    );
+    setItems(newItems);
+  };
+
+  // Função para salvar a coleta no banco de dados
+  const handleSaveItem = async (type: string, quantity: number) => {
+    if (quantity > 0) { // Só tenta salvar se a quantidade for maior que 0
+      await adicionarColeta(type, quantity);
+    }
+  };
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Coletas</Text>
-        <TouchableOpacity style={styles.profileCircle}>
-          <Text style={styles.profileIcon}>⚪</Text>
-        </TouchableOpacity>
-      </View>
-      <TextInput
-        style={styles.searchInput}
-        placeholder="Procurando um item específico?"
-        placeholderTextColor="rgba(0, 0, 0, 0.5)"
-        value={search}
-        onChangeText={setSearch}
-      />
-      <FlatList
-        data={items.filter(item => item.name.toLowerCase().includes(search.toLowerCase()))}
-        keyExtractor={item => item.id}
-        renderItem={({ item }) => (
-          <View style={styles.itemContainer}>
-            <Text style={styles.itemIcon}>{item.icon}</Text>
-            <Text style={styles.itemName}>{item.name}</Text>
-            <View style={styles.quantityContainer}>
-              <TouchableOpacity>
-                <Text style={styles.quantityButton}>+</Text>
-              </TouchableOpacity>
-              <Text style={styles.quantity}>1</Text>
-              <TouchableOpacity>
-                <Text style={styles.quantityButton}>-</Text>
-              </TouchableOpacity>
-            </View>
-            <TouchableOpacity style={styles.addButton}>
-              <Text style={styles.addButtonText}>Adicionar</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-      />
-      <TouchableOpacity style={styles.myItemsButton}>
-        <Text style={styles.myItemsButtonText}>Meus Itens</Text>
-      </TouchableOpacity>
-      <View style={styles.navbar}>
-        <TouchableOpacity>
-          <Text style={styles.navbarIcon}>🏠</Text>
-        </TouchableOpacity>
-        <TouchableOpacity>
-          <Text style={styles.navbarIcon}>♻️</Text>
-        </TouchableOpacity>
-        <TouchableOpacity>
-          <Text style={styles.navbarIcon}>👤</Text>
-        </TouchableOpacity>
-      </View>
+      {items.map(item => (
+        <View key={item.id} style={styles.itemContainer}>
+          <Image source={itemTypes[item.type]} style={styles.itemImage} />
+          <Text style={styles.itemText}>{item.type}</Text>
+          <TouchableOpacity onPress={() => handleRemoveItem(item.id)} style={styles.changeQuantityButton}>
+            <Text style={styles.buttonText}>-</Text>
+          </TouchableOpacity>
+          <Text style={styles.quantityText}>{item.quantity}</Text>
+          <TouchableOpacity onPress={() => handleAddItem(item.id)} style={styles.changeQuantityButton}>
+            <Text style={styles.buttonText}>+</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.button} onPress={() => handleSaveItem(item.type, item.quantity)}>
+            <Text style={styles.buttonText}>Adicionar</Text>
+          </TouchableOpacity>
+        </View>
+      ))}
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingHorizontal: 20,
-    paddingTop: 50,
-    backgroundColor: '#fff',
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    fontFamily: 'Raleway-Bold',
-  },
-  profileCircle: {
-    width: 35,
-    height: 35,
-    borderRadius: 20,
-    backgroundColor: '#e0e0e0',
     justifyContent: 'center',
-    alignItems: 'center',
-  },
-  profileIcon: {
-    fontSize: 20,
-    color: '#000',
-  },
-  searchInput: {
-    height: 50,
-    borderColor: '#ccc',
-    borderWidth: 1,
-    borderRadius: 10,
-    paddingHorizontal: 10,
-    marginTop: 20,
-    marginBottom: 20,
-    fontFamily: 'Raleway-Regular',
+    paddingTop: 20, // Espaçamento do topo
   },
   itemContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#333',
-    padding: 10,
-    borderRadius: 10,
-    marginBottom: 15,
+    backgroundColor: '#F7F7F9', // Cor de fundo do retângulo
+    width: 327, // Largura do retângulo
+    height: 72, // Altura do retângulo
+    borderRadius: 4, // Borda arredondada
+    marginVertical: 10, // Espaçamento vertical entre os itens
+    paddingHorizontal: 10, // Padding horizontal interno
   },
-  itemIcon: {
-    fontSize: 24,
-    color: '#fff',
+  itemImage: {
+    width: 50,
+    height: 50,
+    marginRight: 10,
   },
-  itemName: {
-    fontSize: 18,
-    color: '#fff',
-    fontFamily: 'Raleway-Regular',
+  itemText: {
     flex: 1,
-    marginLeft: 10,
+    fontSize: 16, // Tamanho do texto
+    color: '#000000', // Cor do texto
   },
-  quantityContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  quantityText: {
+    fontSize: 16, // Tamanho do texto da quantidade
+    color: '#000000', // Cor do texto
+    marginRight: 10,
   },
-  quantityButton: {
-    fontSize: 20,
-    color: '#fff',
-    marginHorizontal: 10,
+  changeQuantityButton: {
+    padding: 10,
+    backgroundColor: '#e0e0e0', // Cor do botão para alterar quantidade
+    borderRadius: 5,
   },
-  quantity: {
-    fontSize: 18,
-    color: '#fff',
+  button: {
+    padding: 10,
+    backgroundColor: '#007bff', // Cor do botão
+    borderRadius: 5,
   },
-  addButton: {
-    backgroundColor: '#007bff',
-    borderRadius: 10,
-    paddingVertical: 5,
-    paddingHorizontal: 10,
-  },
-  addButtonText: {
-    color: '#fff',
-    fontSize: 14,
-    fontFamily: 'Raleway-Bold',
-  },
-  myItemsButton: {
-    backgroundColor: '#007bff',
-    borderRadius: 10,
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    alignSelf: 'center',
-    marginTop: 20,
-  },
-  myItemsButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontFamily: 'Raleway-Bold',
-  },
-  navbar: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: 70,
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    borderTopWidth: 1,
-    borderTopColor: '#ccc',
-  },
-  navbarIcon: {
-    fontSize: 24,
-    color: '#000',
-  },
+  buttonText: {
+    color: 'white', // Cor do texto do botão
+    fontSize: 14, // Tamanho do texto do botão
+  }
 });
 
 export default ColetasScreen;

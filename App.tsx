@@ -4,16 +4,19 @@ import AppLoading from 'expo-app-loading';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import * as Font from 'expo-font';
-import InitialScreen from './components/InitialScreen';
-import LoadingScreen from './components/LoadingScreen';
 import LoginScreen from './components/LoginScreen';
 import RegisterScreen from './components/RegisterScreen';
+import { GlobalStateProvider } from './hooks/useGlobalState';
+import ColetasScreen from './components/ColetasScreen';
+import LoadingScreen from './components/LoadingScreen';
+import InitialScreen from './components/InitialScreen';
 
 type RootStackParamList = {
   LoadingScreen: undefined;
   InitialScreen: undefined;
   LoginScreen: undefined;
   RegisterScreen: undefined;
+  ColetasScreen: undefined;
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -41,14 +44,17 @@ const App: React.FC = () => {
   }
 
   return (
-    <NavigationContainer>
-      <Stack.Navigator initialRouteName="LoadingScreen">
-        <Stack.Screen name="LoadingScreen" component={LoadingScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="InitialScreen" component={InitialScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="LoginScreen" component={LoginScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="RegisterScreen" component={RegisterScreen} options={{ headerShown: false }} />
-      </Stack.Navigator>
-    </NavigationContainer>
+    <GlobalStateProvider>
+      <NavigationContainer>
+        <Stack.Navigator initialRouteName="LoadingScreen">
+          <Stack.Screen name="LoadingScreen" component={LoadingScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="InitialScreen" component={InitialScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="LoginScreen" component={LoginScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="RegisterScreen" component={RegisterScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="ColetasScreen" component={ColetasScreen} options={{ headerShown: false }} />
+        </Stack.Navigator>
+      </NavigationContainer>
+    </GlobalStateProvider>
   );
 };
 

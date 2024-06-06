@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, Dimensions } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import axios from 'axios';
+import { useGlobalState } from '../hooks/useGlobalState';
 
 type RootStackParamList = {
   LoginScreen: undefined;
@@ -17,7 +17,7 @@ const RegisterScreen: React.FC = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-
+  const { register } = useGlobalState();
   const navigation = useNavigation<RegisterScreenNavigationProp>();
 
   const handleRegister = async () => {
@@ -27,18 +27,9 @@ const RegisterScreen: React.FC = () => {
     }
 
     try {
-      const response = await axios.post('http://localhost:3000/api/register', {
-        name: name,
-        email: email,
-        password: password
-      });
-
-      if (response.status === 201) {
-        Alert.alert('Sucesso', 'Registro realizado com sucesso');
-        navigation.navigate('LoginScreen');
-      } else {
-        Alert.alert('Erro', 'Usuário já registrado');
-      }
+      await register(name, email, password);
+      Alert.alert('Sucesso', 'Registro realizado com sucesso');
+      navigation.navigate('LoginScreen');
     } catch (error) {
       Alert.alert('Erro', 'Falha no registro. Tente novamente.');
     }
