@@ -3,7 +3,7 @@ const bodyParser = require('body-parser');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const cors = require('cors');
-const { sequelize, Usuario } = require('./models/db');
+const { sequelize, Usuario, Coleta } = require('./models/db');
 
 const app = express();
 const port = 3000;
@@ -49,14 +49,14 @@ app.post('/api/register', async (req, res) => {
 app.delete('/api/users/:id', async (req, res) => {
   const id = req.params.id;
   try {
-    const user = await Usuario.findByPk(id);
-    if (!user) {
-      return res.status(404).json({ message: 'Usuário não encontrado' });
-    }
-    await user.destroy();
-    res.status(200).json({ message: 'Usuário excluído com sucesso' });
+      const user = await Usuario.findByPk(id);
+      if (!user) {
+          return res.status(404).json({ message: 'Usuário não encontrado' });
+      }
+      await user.destroy();
+      res.status(200).json({ message: 'Usuário excluído com sucesso' });
   } catch (error) {
-    res.status(500).json({ message: 'Erro ao excluir o usuário', error });
+      res.status(500).json({ message: 'Erro ao excluir o usuário', error });
   }
 });
 
@@ -94,34 +94,24 @@ app.get('/api/user', verificarToken, async (req, res) => {
   }
 });
 
-// Rota para listar todos os usuários
-app.get('/api/users', async (req, res) => {
+// Rota para adicionar coleta
+app.post('/api/coletas', verificarToken, async (req, res) => {
+  const { tipo_item, quantidade } = req.body;
   try {
-    const users = await Usuario.findAll({
-      attributes: ['usuario_id', 'nome_usuario', 'email'] // Exclui o campo senha_hash
-    });
-    res.status(200).json(users);
+    const novaColeta = await Coleta.create({ usuario_id: req.userId, tipo_item, quantidade });
+    res.status(201).json(novaColeta);
   } catch (error) {
-    res.status(500).json({ message: 'Erro no servidor', error });
+    res.status(500).json({ message: 'Erro ao adicionar coleta', error });
   }
 });
 
-// Rota para atualizar um usuário
-app.put('/api/users/:id', async (req, res) => {
-  const { id } = req.params;
-  const { nome_usuario, email, senha_hash } = req.body;
+// Rota para listar todas as coletas de um usuário
+app.get('/api/coletas', verificarToken, async (req, res) => {
   try {
-    const user = await Usuario.findByPk(id);
-    if (!user) {
-      return res.status(404).json({ message: 'Usuário não encontrado' });
-    }
-
-    const hashedPassword = senha_hash ? bcrypt.hashSync(senha_hash, 8) : user.senha_hash;
-
-    await user.update({ nome_usuario, email, senha_hash: hashedPassword });
-    res.status(200).json({ message: 'Usuário atualizado com sucesso', user });
+    const coletas = await Coleta.findAll({ where: { usuario_id: req.userId } });
+    res.status(200).json(coletas);
   } catch (error) {
-    res.status(500).json({ message: 'Erro ao atualizar o usuário', error });
+    res.status(500).json({ message: 'Erro ao listar coletas', error });
   }
 });
 

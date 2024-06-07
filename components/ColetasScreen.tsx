@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity, ImageSourcePropType } from 'react-native';
 import { useGlobalState } from '../hooks/useGlobalState'; // Importa o hook de estado global
 
@@ -8,23 +8,37 @@ interface ItemType {
 
 // Tipos de itens e suas respectivas imagens
 const itemTypes: ItemType = {
-  Plástico: require('../assets/images/plastic-icon.png'), 
-  Papel: require('../assets/images/paper-icon.png'), 
-  Metal: require('../assets/images/metal-icon.png'), 
-  Vidro: require('../assets/images/glass-icon.png'), 
-  NãoReciclável: require('../assets/images/non-recyclable-icon.png')
+  Plastico: require('../assets/images/plastic-icon.png'),
+  Papel: require('../assets/images/paper-icon.png'),
+  Metal: require('../assets/images/metal-icon.png'),
+  Vidro: require('../assets/images/glass-icon.png'),
+  NaoReciclavel: require('../assets/images/non-recyclable-icon.png'),
 };
 
 const ColetasScreen = () => {
   const [items, setItems] = useState([
-    { id: 1, type: 'Plástico', quantity: 1 },
+    { id: 1, type: 'Plastico', quantity: 1 },
     { id: 2, type: 'Papel', quantity: 2 },
     { id: 3, type: 'Metal', quantity: 1 },
     { id: 4, type: 'Vidro', quantity: 3 },
-    { id: 5, type: 'NãoReciclável', quantity: 0 },
+    { id: 5, type: 'NaoReciclavel', quantity: 0 },
   ]);
 
-  const { adicionarColeta } = useGlobalState(); // Usa a função do contexto global
+  const { adicionarColeta, listarColetas, coletas } = useGlobalState(); // Usa a função do contexto global
+
+  // Carrega as coletas ao montar o componente
+  useEffect(() => {
+    listarColetas();
+  }, []);
+
+  // Atualiza os itens com base nas coletas
+  useEffect(() => {
+    const updatedItems = items.map(item => {
+      const coleta = coletas.find(c => c.tipo_item === item.type);
+      return coleta ? { ...item, quantity: coleta.quantidade } : item;
+    });
+    setItems(updatedItems);
+  }, [coletas]);
 
   // Função para incrementar a quantidade de um item
   const handleAddItem = (id: number) => {
@@ -54,7 +68,7 @@ const ColetasScreen = () => {
       {items.map(item => (
         <View key={item.id} style={styles.itemContainer}>
           <Image source={itemTypes[item.type]} style={styles.itemImage} />
-          <Text style={styles.itemText}>{item.type}</Text>
+          <Text style={styles.itemText}>{item.type.replace(/NaoReciclavel/g, 'Não Reciclável')}</Text>
           <TouchableOpacity onPress={() => handleRemoveItem(item.id)} style={styles.changeQuantityButton}>
             <Text style={styles.buttonText}>-</Text>
           </TouchableOpacity>
