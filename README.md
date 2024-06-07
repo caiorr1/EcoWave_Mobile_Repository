@@ -15,3 +15,19 @@ Clone o repositório para a sua máquina local:
 ```bash
 git clone <URL_DO_REPOSITORIO>
 cd EcoWave_Mobile_Repository
+```
+
+### Passo 2: Instalar dependências do frontend
+npm install
+
+### Passo 3: Instalar dependências do backend
+cd backend
+npm install
+
+### Passo 4: Iniciar o backend
+cd backend
+npm start
+
+### Passo 5: Iniciar o frontend
+cd ..
+npm run start-frontend
