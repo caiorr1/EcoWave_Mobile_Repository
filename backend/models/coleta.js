@@ -24,7 +24,7 @@ const Coleta = sequelize.define('Coleta', {
     allowNull: false
   }
 }, {
-  tableName: 'coletas',
+  tableName: 'Coletas',
   timestamps: false
 });
 

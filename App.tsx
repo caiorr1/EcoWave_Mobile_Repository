@@ -10,6 +10,7 @@ import { GlobalStateProvider } from './hooks/useGlobalState';
 import ColetasScreen from './components/ColetasScreen';
 import LoadingScreen from './components/LoadingScreen';
 import InitialScreen from './components/InitialScreen';
+import MeusItensScreen from './components/MeusItensScreen';
 
 type RootStackParamList = {
   LoadingScreen: undefined;
@@ -17,6 +18,7 @@ type RootStackParamList = {
   LoginScreen: undefined;
   RegisterScreen: undefined;
   ColetasScreen: undefined;
+  MeusItensScreen: undefined; 
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -47,8 +49,12 @@ const App: React.FC = () => {
     <GlobalStateProvider>
       <NavigationContainer>
         <Stack.Navigator initialRouteName="LoadingScreen">
-          
+          <Stack.Screen name="LoadingScreen" component={LoadingScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="InitialScreen" component={InitialScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="LoginScreen" component={LoginScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="RegisterScreen" component={RegisterScreen} options={{ headerShown: false }} />
           <Stack.Screen name="ColetasScreen" component={ColetasScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="MeusItensScreen" component={MeusItensScreen} options={{ headerShown: false }} />
         </Stack.Navigator>
       </NavigationContainer>
     </GlobalStateProvider>

@@ -1,74 +1,91 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, ImageSourcePropType } from 'react-native';
-import { useGlobalState } from '../hooks/useGlobalState'; // Importa o hook de estado global
+import { View, Text, StyleSheet, Image, TouchableOpacity, ImageSourcePropType, Modal } from 'react-native';
+import { useNavigation, NavigationProp } from '@react-navigation/native';
+import { useGlobalState } from '../hooks/useGlobalState';
+
+export type RootStackParamList = {
+  LoadingScreen: undefined;
+  InitialScreen: undefined;
+  LoginScreen: undefined;
+  RegisterScreen: undefined;
+  ColetasScreen: undefined;
+  MeusItensScreen: undefined;
+};
 
 interface ItemType {
   [key: string]: ImageSourcePropType;
 }
 
-// Tipos de itens e suas respectivas imagens
 const itemTypes: ItemType = {
-  Plastico: require('../assets/images/plastic-icon.png'),
-  Papel: require('../assets/images/paper-icon.png'),
-  Metal: require('../assets/images/metal-icon.png'),
-  Vidro: require('../assets/images/glass-icon.png'),
-  NaoReciclavel: require('../assets/images/non-recyclable-icon.png'),
+  Plástico: require('../assets/images/plastic-icon.png'), 
+  Papel: require('../assets/images/paper-icon.png'), 
+  Metal: require('../assets/images/metal-icon.png'), 
+  Vidro: require('../assets/images/glass-icon.png'), 
+  'Não Reciclável': require('../assets/images/non-recyclable-icon.png')
 };
 
-const ColetasScreen = () => {
+const ColetasScreen: React.FC = () => {
   const [items, setItems] = useState([
-    { id: 1, type: 'Plastico', quantity: 1 },
-    { id: 2, type: 'Papel', quantity: 2 },
-    { id: 3, type: 'Metal', quantity: 1 },
-    { id: 4, type: 'Vidro', quantity: 3 },
-    { id: 5, type: 'NaoReciclavel', quantity: 0 },
+    { id: 1, type: 'Plástico', quantity: 0 },
+    { id: 2, type: 'Papel', quantity: 0 },
+    { id: 3, type: 'Metal', quantity: 0 },
+    { id: 4, type: 'Vidro', quantity: 0 },
+    { id: 5, type: 'Não Reciclável', quantity: 0 },
   ]);
 
-  const { adicionarColeta, listarColetas, coletas } = useGlobalState(); // Usa a função do contexto global
+  const { adicionarColeta } = useGlobalState();
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 
-  // Carrega as coletas ao montar o componente
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalMessage, setModalMessage] = useState('');
+
   useEffect(() => {
-    listarColetas();
+    setItems([
+      { id: 1, type: 'Plástico', quantity: 0 },
+      { id: 2, type: 'Papel', quantity: 0 },
+      { id: 3, type: 'Metal', quantity: 0 },
+      { id: 4, type: 'Vidro', quantity: 0 },
+      { id: 5, type: 'Não Reciclável', quantity: 0 },
+    ]);
   }, []);
 
-  // Atualiza os itens com base nas coletas
-  useEffect(() => {
-    const updatedItems = items.map(item => {
-      const coleta = coletas.find(c => c.tipo_item === item.type);
-      return coleta ? { ...item, quantity: coleta.quantidade } : item;
-    });
-    setItems(updatedItems);
-  }, [coletas]);
-
-  // Função para incrementar a quantidade de um item
   const handleAddItem = (id: number) => {
     const newItems = items.map(item =>
-      item.id === id ? { ...item, quantity: Math.min(item.quantity + 1, 50) } : item // Limita a quantidade máxima a 50
+      item.id === id ? { ...item, quantity: Math.min(item.quantity + 1, 50) } : item 
     );
     setItems(newItems);
   };
 
-  // Função para decrementar a quantidade de um item
   const handleRemoveItem = (id: number) => {
     const newItems = items.map(item =>
-      item.id === id ? { ...item, quantity: Math.max(item.quantity - 1, 0) } : item // Limita a quantidade mínima a 0
+      item.id === id ? { ...item, quantity: Math.max(item.quantity - 1, 0) } : item 
     );
     setItems(newItems);
   };
 
-  // Função para salvar a coleta no banco de dados
   const handleSaveItem = async (type: string, quantity: number) => {
-    if (quantity > 0) { // Só tenta salvar se a quantidade for maior que 0
-      await adicionarColeta(type, quantity);
+    if (quantity > 0) { 
+      try {
+        await adicionarColeta(type, quantity);
+        setModalMessage(`Item ${type} adicionado com sucesso!`);
+        setModalVisible(true);
+      } catch (error) {
+        setModalMessage('Falha ao adicionar item. Tente novamente.');
+        setModalVisible(true);
+      }
+    } else {
+      setModalMessage('A quantidade deve ser maior que zero.');
+      setModalVisible(true);
     }
   };
 
   return (
     <View style={styles.container}>
+      <Text style={styles.title}>Coletas</Text>
       {items.map(item => (
         <View key={item.id} style={styles.itemContainer}>
           <Image source={itemTypes[item.type]} style={styles.itemImage} />
-          <Text style={styles.itemText}>{item.type.replace(/NaoReciclavel/g, 'Não Reciclável')}</Text>
+          <Text style={styles.itemText}>{item.type}</Text>
           <TouchableOpacity onPress={() => handleRemoveItem(item.id)} style={styles.changeQuantityButton}>
             <Text style={styles.buttonText}>-</Text>
           </TouchableOpacity>
@@ -81,6 +98,28 @@ const ColetasScreen = () => {
           </TouchableOpacity>
         </View>
       ))}
+      <TouchableOpacity style={styles.coletarButton} onPress={() => navigation.navigate('MeusItensScreen')}>
+        <Text style={styles.coletarButtonText}>Meus Itens</Text>
+      </TouchableOpacity>
+      
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalView}>
+            <Text style={styles.modalText}>{modalMessage}</Text>
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={() => setModalVisible(false)}
+            >
+              <Text style={styles.closeButtonText}>Fechar</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -90,50 +129,101 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingTop: 20, // Espaçamento do topo
+    paddingTop: 20,
+  },
+  title: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    fontFamily: 'Raleway-Regular',
+    marginBottom: 10,
+    textAlign: 'center',
   },
   itemContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#3F3F3F', // Cor de fundo do retângulo
-    width: 250, // Largura do retângulo
-    height: 72, // Altura do retângulo
-    borderRadius: 4, // Borda arredondada
-    marginVertical: 10, // Espaçamento vertical entre os itens
-    paddingHorizontal: 10, // Padding horizontal interno
+    backgroundColor: '#3F3F3F',
+    width: 250,
+    height: 72,
+    borderRadius: 4,
+    marginVertical: 10,
+    paddingHorizontal: 10,
   },
   itemImage: {
-    width: 30, // Diminuir tamanho da imagem
-    height: 30, // Diminuir tamanho da imagem
+    width: 30,
+    height: 30,
     marginRight: 10,
   },
   itemText: {
     flex: 1,
-    fontSize: 14, // Diminuir tamanho do texto
-    color: 'white', // Cor do texto
+    fontSize: 14,
+    color: 'white',
   },
   quantityText: {
-    fontSize: 14, // Diminuir tamanho do texto da quantidade
-    color: 'white', // Cor do texto
-    marginRight: 10,
+    fontSize: 14,
+    color: 'white',
+    marginHorizontal: 5,
   },
   changeQuantityButton: {
-    padding: 4, // Diminuir tamanho do botão de adicionar/remover
-    backgroundColor: '#3F3F3F', // Mesma cor do fundo do retângulo
+    padding: 4,
+    backgroundColor: '#3F3F3F',
     borderRadius: 5,
   },
   addButton: {
-    paddingVertical: 3, // Diminuir tamanho do botão adicionar
+    paddingVertical: 3,
     paddingHorizontal: 6,
-    backgroundColor: '#3F3F3F', // Cor de fundo cinza
+    backgroundColor: '#3F3F3F',
     borderRadius: 5,
-    borderWidth: 1, // Borda branca
+    borderWidth: 1,
     borderColor: 'white',
   },
   buttonText: {
-    color: 'white', // Cor do texto do botão
-    fontSize: 12, // Diminuir tamanho do texto do botão
-  }
+    color: 'white',
+    fontSize: 12,
+  },
+  coletarButton: {
+    backgroundColor: '#007bff',
+    borderRadius: 5,
+    width: 76,
+    height: 31,
+    justifyContent: 'center',
+    alignItems: 'center',
+    margin: 20,
+  },
+  coletarButtonText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalView: {
+    width: 300,
+    backgroundColor: 'white',
+    borderRadius: 10,
+    padding: 20,
+    alignItems: 'center',
+    elevation: 5,
+  },
+  modalText: {
+    marginBottom: 15,
+    textAlign: 'center',
+    fontSize: 16,
+  },
+  closeButton: {
+    backgroundColor: '#007bff',
+    borderRadius: 5,
+    padding: 10,
+    elevation: 2,
+  },
+  closeButtonText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
 });
 
 export default ColetasScreen;

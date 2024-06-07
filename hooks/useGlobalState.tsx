@@ -7,7 +7,6 @@ interface User {
 }
 
 interface Coleta {
-  id: number;
   tipo_item: string;
   quantidade: number;
 }
@@ -18,8 +17,8 @@ interface GlobalStateContextProps {
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   register: (nome_usuario: string, email: string, senha_hash: string) => Promise<void>;
-  adicionarColeta: (tipo_item: string, quantidade: number) => Promise<void>;
-  listarColetas: () => Promise<void>;
+  adicionarColeta: (tipo: string, quantidade: number) => Promise<void>;
+  fetchColetas: () => Promise<void>;
 }
 
 const GlobalStateContext = createContext<GlobalStateContextProps>({
@@ -29,7 +28,7 @@ const GlobalStateContext = createContext<GlobalStateContextProps>({
   logout: () => {},
   register: async () => {},
   adicionarColeta: async () => {},
-  listarColetas: async () => {},
+  fetchColetas: async () => {},
 });
 
 export const useGlobalState = () => useContext(GlobalStateContext);
@@ -82,10 +81,9 @@ export const GlobalStateProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
   const logout = () => {
     setUser(null);
-    setColetas([]);
   };
 
-  const adicionarColeta = async (tipo_item: string, quantidade: number) => {
+  const adicionarColeta = async (tipo: string, quantidade: number) => {
     try {
       const response = await fetch('http://localhost:3000/api/coletas', {
         method: 'POST',
@@ -93,7 +91,7 @@ export const GlobalStateProvider: React.FC<{ children: React.ReactNode }> = ({ c
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${user?.token}`,
         },
-        body: JSON.stringify({ tipo_item, quantidade }),
+        body: JSON.stringify({ tipo_item: tipo, quantidade }),
       });
 
       if (response.ok) {
@@ -107,34 +105,29 @@ export const GlobalStateProvider: React.FC<{ children: React.ReactNode }> = ({ c
     }
   };
 
-  const listarColetas = async () => {
+  const fetchColetas = async () => {
     try {
-      const response = await fetch('http://localhost:3000/api/coletas', {
+      const response = await fetch('http://localhost:3000/api/itens', {
         method: 'GET',
         headers: {
+          'Content-Type': 'application/json',
           'Authorization': `Bearer ${user?.token}`,
         },
       });
 
       if (response.ok) {
-        const coletas = await response.json();
-        setColetas(coletas);
+        const itens = await response.json();
+        setColetas(itens);
       } else {
-        throw new Error('Falha ao listar coletas');
+        throw new Error('Falha ao buscar itens coletados');
       }
     } catch (error) {
-      console.error('Erro ao listar coletas:', error);
+      console.error('Erro ao buscar itens coletados:', error);
     }
   };
 
-  useEffect(() => {
-    if (user) {
-      listarColetas();
-    }
-  }, [user]);
-
   return (
-    <GlobalStateContext.Provider value={{ user, coletas, login, logout, register, adicionarColeta, listarColetas }}>
+    <GlobalStateContext.Provider value={{ user, coletas, login, logout, register, adicionarColeta, fetchColetas }}>
       {children}
     </GlobalStateContext.Provider>
   );

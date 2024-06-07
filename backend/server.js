@@ -3,7 +3,8 @@ const bodyParser = require('body-parser');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const cors = require('cors');
-const { sequelize, Usuario, Coleta } = require('./models/db');
+const { sequelize, Usuario } = require('./models/db');
+const Coleta = require('./models/coleta'); // Certifique-se de que o caminho está correto
 
 const app = express();
 const port = 3000;
@@ -14,12 +15,15 @@ app.use(bodyParser.json());
 
 // Middleware para verificar o token
 const verificarToken = (req, res, next) => {
-  const token = req.headers['authorization'];
-  if (!token) {
+  const authHeader = req.headers['authorization'];
+  if (!authHeader) {
     return res.status(403).send({ auth: false, message: 'No token provided.' });
   }
+
+  const token = authHeader.split(' ')[1]; // Extrai o token do cabeçalho
   jwt.verify(token, SECRET_KEY, (err, decoded) => {
     if (err) {
+      console.error('Token verification error:', err); // Log de erro detalhado
       return res.status(500).send({ auth: false, message: 'Failed to authenticate token.' });
     }
     req.userId = decoded.id;
@@ -41,22 +45,24 @@ app.post('/api/register', async (req, res) => {
     const token = jwt.sign({ id: newUser.usuario_id }, SECRET_KEY, { expiresIn: '1h' });
     res.status(201).json({ token, user: newUser });
   } catch (error) {
+    console.error('Error during registration:', error); // Log de erro detalhado
     res.status(500).json({ message: 'Erro no servidor', error });
   }
 });
 
 // Rota para apagar usuário por ID
-app.delete('/api/users/:id', async (req, res) => {
+app.delete('/api/users/:id', verificarToken, async (req, res) => {
   const id = req.params.id;
   try {
-      const user = await Usuario.findByPk(id);
-      if (!user) {
-          return res.status(404).json({ message: 'Usuário não encontrado' });
-      }
-      await user.destroy();
-      res.status(200).json({ message: 'Usuário excluído com sucesso' });
+    const user = await Usuario.findByPk(id);
+    if (!user) {
+      return res.status(404).json({ message: 'Usuário não encontrado' });
+    }
+    await user.destroy();
+    res.status(200).json({ message: 'Usuário excluído com sucesso' });
   } catch (error) {
-      res.status(500).json({ message: 'Erro ao excluir o usuário', error });
+    console.error('Error deleting user:', error); // Log de erro detalhado
+    res.status(500).json({ message: 'Erro ao excluir o usuário', error });
   }
 });
 
@@ -75,6 +81,7 @@ app.post('/api/login', async (req, res) => {
     const token = jwt.sign({ id: user.usuario_id }, SECRET_KEY, { expiresIn: '1h' });
     res.status(200).send({ auth: true, token });
   } catch (error) {
+    console.error('Error during login:', error); // Log de erro detalhado
     res.status(500).json({ message: 'Erro no servidor', error });
   }
 });
@@ -86,32 +93,84 @@ app.get('/api/user', verificarToken, async (req, res) => {
     if (!user) {
       return res.status(404).send('Usuário não encontrado.');
     }
-    // Retornar informações do usuário, excluindo a senha
     const { usuario_id, nome_usuario, email } = user;
     res.status(200).json({ usuario_id, nome_usuario, email });
   } catch (error) {
+    console.error('Error fetching user:', error); // Log de erro detalhado
     res.status(500).json({ message: 'Erro no servidor', error });
   }
 });
 
-// Rota para adicionar coleta
+// Endpoint para adicionar coleta
 app.post('/api/coletas', verificarToken, async (req, res) => {
   const { tipo_item, quantidade } = req.body;
   try {
-    const novaColeta = await Coleta.create({ usuario_id: req.userId, tipo_item, quantidade });
+    const novaColeta = await Coleta.create({
+      tipo_item,
+      quantidade,
+      usuario_id: req.userId,
+    });
     res.status(201).json(novaColeta);
   } catch (error) {
+    console.error('Error adding collection:', error); // Log de erro detalhado
     res.status(500).json({ message: 'Erro ao adicionar coleta', error });
   }
 });
 
-// Rota para listar todas as coletas de um usuário
-app.get('/api/coletas', verificarToken, async (req, res) => {
+// Endpoint para atualizar uma coleta
+app.put('/api/coletas/:id', verificarToken, async (req, res) => {
+  const { id } = req.params;
+  const { tipo_item, quantidade } = req.body;
+  try {
+    const coleta = await Coleta.findByPk(id);
+    if (!coleta) {
+      return res.status(404).json({ message: 'Coleta não encontrada' });
+    }
+    coleta.tipo_item = tipo_item;
+    coleta.quantidade = quantidade;
+    await coleta.save();
+    res.status(200).json(coleta);
+  } catch (error) {
+    console.error('Error updating collection:', error); // Log de erro detalhado
+    res.status(500).json({ message: 'Erro ao atualizar coleta', error });
+  }
+});
+
+// Endpoint para deletar uma coleta
+app.delete('/api/coletas/:id', verificarToken, async (req, res) => {
+  const { id } = req.params;
+  try {
+    const coleta = await Coleta.findByPk(id);
+    if (!coleta) {
+      return res.status(404).json({ message: 'Coleta não encontrada' });
+    }
+    await coleta.destroy();
+    res.status(200).json({ message: 'Coleta deletada com sucesso' });
+  } catch (error) {
+    console.error('Error deleting collection:', error); // Log de erro detalhado
+    res.status(500).json({ message: 'Erro ao deletar coleta', error });
+  }
+});
+
+// Endpoint para listar todos os itens coletados por usuário
+app.get('/api/itens', verificarToken, async (req, res) => {
   try {
     const coletas = await Coleta.findAll({ where: { usuario_id: req.userId } });
     res.status(200).json(coletas);
   } catch (error) {
-    res.status(500).json({ message: 'Erro ao listar coletas', error });
+    console.error('Error fetching collections:', error); // Log de erro detalhado
+    res.status(500).json({ message: 'Erro ao buscar itens coletados', error });
+  }
+});
+
+// Endpoint para listar todos os usuários
+app.get('/api/users', verificarToken, async (req, res) => {
+  try {
+    const users = await Usuario.findAll();
+    res.status(200).json(users);
+  } catch (error) {
+    console.error('Error fetching users:', error); // Log de erro detalhado
+    res.status(500).json({ message: 'Erro ao buscar usuários', error });
   }
 });
 

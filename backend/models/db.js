@@ -31,21 +31,23 @@ const Usuario = sequelize.define('Usuario', {
   tableName: 'Usuarios'
 });
 
-const ItemReciclado = sequelize.define('ItemReciclado', {
-  item_id: {
+const Coleta = sequelize.define('Coleta', {
+  id: {
     type: DataTypes.INTEGER,
     primaryKey: true,
     autoIncrement: true
   },
+  usuario_id: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    references: {
+      model: 'Usuarios',
+      key: 'usuario_id'
+    }
+  },
   tipo_item: {
-    type: DataTypes.STRING(50),
+    type: DataTypes.STRING(255),
     allowNull: false
-  },
-  data_coleta: {
-    type: DataTypes.DATE
-  },
-  localizacao: {
-    type: DataTypes.STRING(100)
   },
   quantidade: {
     type: DataTypes.INTEGER,
@@ -53,7 +55,7 @@ const ItemReciclado = sequelize.define('ItemReciclado', {
   }
 }, {
   timestamps: false,
-  tableName: 'ItensReciclados'
+  tableName: 'Coletas'
 });
 
 sequelize.sync().then(() => {
@@ -63,5 +65,5 @@ sequelize.sync().then(() => {
 module.exports = {
   sequelize,
   Usuario,
-  ItemReciclado
+  Coleta // Exporta o modelo Coleta
 };
